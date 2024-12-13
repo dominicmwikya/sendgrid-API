@@ -7,26 +7,22 @@ using System.ComponentModel.DataAnnotations;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
-
+using EmailAPI.Services;
+using EmailAPI.DTOs;
 namespace EmailAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class EmailController : ControllerBase
     {
+        private IReportService _reportService;
         private readonly IConfiguration _config;
-        public EmailController(IConfiguration configuration)
+        public EmailController(IConfiguration configuration, IReportService reportService)
         {
             _config = configuration;
+            _reportService = reportService;
         }
-        public class EmailReportRequest
-        {
-            [Required]
-            public List<string> Emails { get; set; }
-
-            [Required]
-            public List<Payment> ReportData { get; set; }
-        }
+    
         // POST api/<EmailController>
         [HttpPost("send-report")]
         public async Task<IActionResult> PostMail([FromBody] EmailReportRequest request)
@@ -38,8 +34,8 @@ namespace EmailAPI.Controllers
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
-                var pdfBytes = GeneratePdfReport(request.ReportData);
-
+                var pdfBytes =  _reportService.GeneratePdfReport(request.ReportData);
+                    //GeneratePdfReport(request.ReportData);
                 var emailTasks = request.Emails.Select(async email =>
                 {
                     try
@@ -91,86 +87,6 @@ namespace EmailAPI.Controllers
             {
                 throw new Exception($"Error sending email: {ex.Message}");
             }
-        }
-
-        public class Payment
-        {
-            [Required]
-            public string TransactionReference { get; set; }
-
-            [Required]
-            public string TruckNumber { get; set; }
-
-            [Required]
-            public DateTime Date { get; set; }
-
-            [Required]
-            public int Amount { get; set; }
-        }
-
-        private byte[] GeneratePdfReport(List<Payment> reportData)
-        {
-            using var outputstream = new MemoryStream();
-            Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4);
-                    page.Margin(1, Unit.Centimetre);
-                    page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(10));
-
-                    page.Header()
-                        .Text("DAILY PAYMENT REPORT")
-                        .SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
-
-                    page.Content()
-                        .PaddingVertical(1, Unit.Centimetre)
-                        .Column(x =>
-                        {
-                            x.Spacing(40);
-                            x.Item().Text("Daily Toll Payment report");
-                            x.Item().Text("Company: Nimule station");
-                            x.Item().Text("Date:" + DateTime.Now.ToString("yyyy-MM-dd"));
-
-                            x.Item().Table(table =>
-                            {
-                                table.ColumnsDefinition(columns =>
-                                {
-                                    columns.ConstantColumn(100);
-                                    columns.ConstantColumn(100);
-                                    columns.ConstantColumn(100);
-                                    columns.ConstantColumn(100);
-                                });
-
-                                table.Header(header =>
-                                {
-                                    header.Cell().Border(1).Padding(2).Text("Date").SemiBold();
-                                    header.Cell().Border(1).Padding(2).Text("Truck Number").SemiBold();
-                                    header.Cell().Border(1).Padding(2).Text("Transaction Ref").SemiBold();
-                                    header.Cell().Border(1).Padding(2).Text("Amount").SemiBold();
-                                });
-
-                                foreach (var payment in reportData)
-                                {
-                                    table.Cell().Border(1).Padding(2).Text(payment.Date.ToString("yyyy-MM-dd"));
-                                    table.Cell().Border(1).Padding(2).Text(payment.TruckNumber);
-                                    table.Cell().Border(1).Padding(2).Text(payment.TransactionReference);
-                                    table.Cell().Border(1).Padding(2).Text(payment.Amount.ToString("C", new CultureInfo("en-KE")));
-                                }
-                            });
-                        });
-
-                    page.Footer()
-                        .AlignCenter()
-                        .Text(x =>
-                        {
-                            x.Span("Page ");
-                            x.CurrentPageNumber();
-                        });
-                });
-            }).GeneratePdf(outputstream);
-            return outputstream.ToArray();
         }
     }
 }

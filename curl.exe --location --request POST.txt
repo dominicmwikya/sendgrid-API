@@ -1,0 +1,4 @@
+ curl.exe --location --request POST "https://localhost:7057/api/BillNotification/verify-signature" `
+>> --header "signature: 69EJ7+KmfkYHCu7+2mtAks5aFXyQUcEvuZjlpRMEbNszApUymF9eFt25QDb/r0bFP9ZmTNKlhlzdU3cjfBXqs8Oto9uYcnSsSatxjNhtD21DmAqzYoikJy6zEge2uRaVPzfkm9C8eUwlgsA5mxLdjWSSib2o8u7WcOTOhpuY8e6Rk2ydZF3Xuq5e1U9iS6+B+Dw+jqr7a6xTrSHpNQc1BD8FRrKvEK+FtwBArbK9ANt9AD7kQ+AQfJZtIjfpzPQXnEngOHpt1U1/OstD7I88PrXh9ikeapgqr6/2/t98GxJWABXNjdk8pUMY2SpnsCyoU2BvrNriWOms+YUp3CRm4g==" `
+>> --header "Content-Type: application/json" `
+>> --data "{\"balance\":\"5\",\"yEmail\":\"test@com\",\"DataFields\":null,\"Status\":0,\"currency\":\"USD\",\"narration\":\"Test payment\",\"requestId\":\"12345\",\"tillNumber\":\"001\",\"channelCode\":\"WEB\",\"customerName\":\"John Doe\",\"customerReference\":\"ABC123\",\"transactionAmount\":\"100\",\"customerMobileNumber\":\"1234567890\",\"transactionReference\":\"TXN123\",\"organizationShortCode\":\"ORG01\",\"creditAccountIdentifier\":\"AC12345\"}"
